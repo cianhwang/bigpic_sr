@@ -1,3 +1,9 @@
+Code borrows heavily from EDSR and SRCNN, with customized modifications.
+
+-----------------
+# EDSR
+
+------------------
 # SRCNN
 
 This repository is implementation of the ["Image Super-Resolution Using Deep Convolutional Networks"](https://arxiv.org/abs/1501.00092).

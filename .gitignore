@@ -1,2 +1,9 @@
 .DS_Store
 .idea
+outputs/
+__pycache__/
+runs/
+test/
+thumbnails/
+data/
+.ipynb_checkpoints/
