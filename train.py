@@ -14,6 +14,42 @@ from datasets import Trainset, Evalset, Camera
 from utils import AverageMeter, calc_psnr
 from tensorboardX import SummaryWriter
 import json
+import torchvision.models
+
+class PerceptualLoss():
+
+    def contentFunc(self):
+        conv_3_3_layer = 14
+        cnn = torchvision.models.vgg19(pretrained=True).features
+        cnn = cnn.cuda()
+        model = nn.Sequential()
+        model = model.cuda()
+        model = model.eval()
+        for i, layer in enumerate(list(cnn)):
+            model.add_module(str(i), layer)
+            if i == conv_3_3_layer:
+                break
+        return model
+
+    def initialize(self, loss):
+        with torch.no_grad():
+            self.criterion = loss
+            self.contentFunc = self.contentFunc()
+
+    def get_loss(self, fakeIm, realIm):
+        if fakeIm.size(1) == 1:
+            fakeIm = fakeIm.repeat(1, 3, 1, 1)
+            realIm = realIm.repeat(1, 3, 1, 1)
+        fakeIm = (fakeIm + 1) / 2.0
+        realIm = (realIm + 1) / 2.0
+        f_fake = self.contentFunc.forward(fakeIm)
+        f_real = self.contentFunc.forward(realIm)
+        f_real_no_grad = f_real.detach()
+        loss = self.criterion(f_fake, f_real_no_grad)
+        return 0.006 * torch.mean(loss) + 0.5 * nn.MSELoss()(fakeIm, realIm)
+
+    def __call__(self, fakeIm, realIm):
+        return self.get_loss(fakeIm, realIm)
 
 
 if __name__ == '__main__':
@@ -24,6 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs_dir', type=str, default='runs')
     #parser.add_argument('--scale', type=int, default=3)
     parser.add_argument('--model', type=str, default='EDSR')
+    parser.add_argument('--criterion', type=str, default='mse')
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--num-epochs', type=int, default=400)
@@ -60,7 +97,17 @@ if __name__ == '__main__':
     else:
         raise("model not recognized. Try EDSR or SRCNN")
     model = model.to(device)
-    criterion = nn.MSELoss()
+    
+    if args.criterion == 'mse':
+        criterion = nn.MSELoss()
+    elif args.criterion == 'l1':
+        criterion = nn.L1Loss()
+    elif args.criterion == 'l1+perceptual':
+        raise NotImplementedError
+    elif args.criterion == 'mse+perceptual':
+        criterion = PerceptualLoss()
+        criterion.initialize(nn.MSELoss())
+       
     #optimizer = optim.Adam([
     #    {'params': model.conv1.parameters()},
     #    {'params': model.conv2.parameters()},

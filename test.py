@@ -15,6 +15,8 @@ if __name__ == '__main__':
     parser.add_argument('--weights-file', type=str, required=True)
     parser.add_argument('--image-file', type=str, required=True)
     parser.add_argument('--model', type=str, default='EDSR')
+    parser.add_argument('--f_num', type=int, default=16)
+    parser.add_argument('--n_photon', type=int, default=100)
     args = parser.parse_args()
 
     cudnn.benchmark = True
@@ -41,7 +43,7 @@ if __name__ == '__main__':
     image = cv2.imread(args.image_file, 0)
     cv2.imwrite('test/hr.png', image)
     image = np.array(image).astype(np.float32)/255.
-    y = Camera().forward(image)
+    y = Camera(f_num=args.f_num, n_photon=args.n_photon).forward(image)
     cv2.imwrite('test/degrade.png', np.clip(y*255.0, 0.0, 255.0).astype(np.uint8))
     y = torch.from_numpy(y).float().to(device)
     y = y.unsqueeze(0).unsqueeze(0)

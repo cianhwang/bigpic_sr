@@ -11,6 +11,8 @@ import torch
 import torchvision
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+from skimage.measure import block_reduce
+
 
 
 # class TrainDataset(Dataset):
@@ -41,11 +43,21 @@ import torchvision.transforms as transforms
 #             return len(f['lr'])
         
 class Camera:
-    def __init__(self, lam=0.633e-6, f_num=32, n_photon=1e2, p=3e-6):
-        self.k_r = int(3*f_num*lam/p)
-        X, Y = np.meshgrid((np.arange(0, self.k_r*2+1)-self.k_r)*p, (np.arange(0, self.k_r*2+1)-self.k_r)*p)
+    def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=3.3e-6, unit=0.1e-6):
+        k_r = int(3*f_num*lam/unit)
+        X, Y = np.meshgrid(
+            (np.arange(0, k_r*2+1)-k_r)*unit, 
+            (np.arange(0, k_r*2+1)-k_r)*unit
+        )
         H = (2*self.jinc(2*np.pi/lam*(X**2+Y**2)**0.5/f_num))**2
+        block_size = int(p/unit)//2*2+1
+        size = ((k_r*2+1)//block_size//2*2-1)*block_size
+        bleed = (k_r*2+1-size)//2
+        H_crop = H[bleed:-bleed, bleed:-bleed]
+        H = block_reduce(H_crop, block_size=(block_size, block_size), func=np.sum)
         H = H/H.sum()
+        assert H.shape[0]%2 == 1
+        self.k_r = H.shape[0]//2
         
         self.n_photon = n_photon
         self.H_t = torch.from_numpy(H).float().unsqueeze(0).unsqueeze(0)
@@ -71,7 +83,7 @@ train_transform = transforms.Compose([
 ])
 val_transform = transforms.Compose([
     transforms.ToPILImage(),
-    transforms.CenterCrop(1024)
+    transforms.CenterCrop(512)
 ])
         
 class Trainset(Dataset):

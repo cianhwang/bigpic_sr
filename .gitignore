@@ -7,3 +7,5 @@ test/
 thumbnails/
 data/
 .ipynb_checkpoints/
+*.sh
+*.ipynb
