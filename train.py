@@ -96,7 +96,7 @@ if __name__ == '__main__':
         model = SRCNN()
     else:
         raise("model not recognized. Try EDSR or SRCNN")
-    model = model.to(device)
+    model = nn.DataParallel(model).to(device)
     
     if args.criterion == 'mse':
         criterion = nn.MSELoss()
