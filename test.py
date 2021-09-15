@@ -1,12 +1,13 @@
 import argparse
 
+import torch.nn as nn
 import torch
 import torch.backends.cudnn as cudnn
 import numpy as np
 import cv2
 
 from models import SRCNN,EDSR
-from utils import convert_rgb_to_ycbcr, convert_ycbcr_to_rgb, calc_psnr
+from utils import calc_psnr
 from datasets import Camera
 
 
@@ -28,7 +29,7 @@ if __name__ == '__main__':
         model = SRCNN()
     else:
         raise("model not recognized. Try EDSR or SRCNN")
-    model = model.to(device)
+    model = nn.DataParallel(model).to(device)
 
     #state_dict = model.state_dict()
     #for n, p in torch.load(args.weights_file, map_location=lambda storage, loc: storage).items():
@@ -40,7 +41,7 @@ if __name__ == '__main__':
 
     model.eval()
 
-    image = cv2.imread(args.image_file, 0)
+    image = cv2.imread(args.image_file, 0)[:1024, :1024]
     cv2.imwrite('test/hr.png', image)
     image = np.array(image).astype(np.float32)/255.
     y = Camera(f_num=args.f_num, n_photon=args.n_photon).forward(image)
