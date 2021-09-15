@@ -17,6 +17,10 @@ import json
 import torchvision.models
 
 class PerceptualLoss():
+    
+    def __init__(self, aux_loss_fn=nn.MSELoss(), lam=0.006):
+        self.aux_loss_fn = aux_loss_fn
+        self.lam = lam
 
     def contentFunc(self):
         conv_3_3_layer = 14
@@ -46,7 +50,7 @@ class PerceptualLoss():
         f_real = self.contentFunc.forward(realIm)
         f_real_no_grad = f_real.detach()
         loss = self.criterion(f_fake, f_real_no_grad)
-        return 0.006 * torch.mean(loss) + 0.5 * nn.MSELoss()(fakeIm, realIm)
+        return self.lam*torch.mean(loss) + 0.5*self.aux_loss_fn(fakeIm, realIm)
 
     def __call__(self, fakeIm, realIm):
         return self.get_loss(fakeIm, realIm)
@@ -103,7 +107,8 @@ if __name__ == '__main__':
     elif args.criterion == 'l1':
         criterion = nn.L1Loss()
     elif args.criterion == 'l1+perceptual':
-        raise NotImplementedError
+        criterion = PerceptualLoss(nn.L1Loss(), 0.06)
+        criterion.initialize(nn.MSELoss())
     elif args.criterion == 'mse+perceptual':
         criterion = PerceptualLoss()
         criterion.initialize(nn.MSELoss())
@@ -178,7 +183,7 @@ if __name__ == '__main__':
         writer.add_scalar('Stats/eval_psnr', epoch_psnr.avg, epoch+1)
 
         if epoch_psnr.avg > best_psnr:
-            best_epoch = epoch
+            best_epoch = epoch+1
             best_psnr = epoch_psnr.avg
             best_weights = copy.deepcopy(model.state_dict())
 

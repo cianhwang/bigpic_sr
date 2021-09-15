@@ -1,4 +1,7 @@
-Code borrows heavily from EDSR and SRCNN, with customized modifications.
+Code borrows from DeblurGANv2, EDSR, and SRCNN.
+
+-----------------
+# DeblurGANv2
 
 -----------------
 # EDSR
