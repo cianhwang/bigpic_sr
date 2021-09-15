@@ -11,8 +11,7 @@ from tqdm import tqdm
 
 from models import SRCNN, EDSR
 from datasets import Evalset, Camera
-from utils import AverageMeter, calc_psnr
-
+from utils import AverageMeter, calc_psnr, calc_ssim
 
 
 if __name__ == '__main__':
@@ -37,13 +36,14 @@ if __name__ == '__main__':
         model = SRCNN()
     else:
         raise("model not recognized. Try EDSR or SRCNN")
-    model = model.to(device)
+    model = nn.DataParallel(model).to(device)
     model.load_state_dict(torch.load(args.model_path))
     eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon))
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
 
     model.eval()
     epoch_psnr = AverageMeter()
+    epoch_ssim = AverageMeter()
     with tqdm(total=len(eval_dataset)) as t:
         for data in eval_dataloader:
             inputs, labels = data
@@ -57,7 +57,9 @@ if __name__ == '__main__':
                 preds = inputs
 
             epoch_psnr.update(calc_psnr(preds, labels), len(inputs))
+            epoch_ssim.update(calc_ssim(labels, preds), len(inputs))
             t.set_postfix(psnr='{:.2f}'.format(epoch_psnr.avg))
+            t.set_postfix(ssim='{:.4f}'.format(epoch_ssim.avg))
             t.update(len(inputs))
 
-    print('eval psnr: {:.2f}'.format(epoch_psnr.avg))
+    print('eval psnr: {:.2f}, eval ssim: {:.4f}'.format(epoch_psnr.avg, epoch_ssim.avg))
