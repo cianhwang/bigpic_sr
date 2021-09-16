@@ -59,7 +59,7 @@ if __name__ == '__main__':
             epoch_psnr.update(calc_psnr(preds, labels), len(inputs))
             epoch_ssim.update(calc_ssim(labels, preds), len(inputs))
             t.set_postfix(psnr='{:.2f}'.format(epoch_psnr.avg))
-            t.set_postfix(ssim='{:.4f}'.format(epoch_ssim.avg))
+            #t.set_postfix(ssim='{:.4f}'.format(epoch_ssim.avg))
             t.update(len(inputs))
 
     print('eval psnr: {:.2f}, eval ssim: {:.4f}'.format(epoch_psnr.avg, epoch_ssim.avg))
