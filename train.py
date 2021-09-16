@@ -73,6 +73,7 @@ if __name__ == '__main__':
     
     parser.add_argument('--n_photon', type=int, default=100)
     parser.add_argument('--f_num', type=int, default=32)
+    parser.add_argument('--kernel', type=str, default='jinc')
     args = parser.parse_args()
 
     #args.outputs_dir = os.path.join(args.outputs_dir, 'x{}'.format(args.scale))
@@ -120,14 +121,14 @@ if __name__ == '__main__':
     #], lr=args.lr)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    train_dataset = Trainset(args.train_file, Camera(f_num = args.f_num, n_photon=args.n_photon))
+    train_dataset = Trainset(args.train_file, Camera(f_num = args.f_num, n_photon=args.n_photon, kernel=args.kernel))
     train_dataloader = DataLoader(dataset=train_dataset,
                                   batch_size=args.batch_size,
                                   shuffle=True,
                                   num_workers=args.num_workers,
                                   pin_memory=True,
                                   drop_last=True)
-    eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon))
+    eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon, kernel=args.kernel))
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
 
     best_weights = copy.deepcopy(model.state_dict())

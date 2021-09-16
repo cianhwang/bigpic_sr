@@ -13,43 +13,19 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from skimage.measure import block_reduce
 
-
-
-# class TrainDataset(Dataset):
-#     def __init__(self, h5_file):
-#         super(TrainDataset, self).__init__()
-#         self.h5_file = h5_file
-
-#     def __getitem__(self, idx):
-#         with h5py.File(self.h5_file, 'r') as f:
-#             return np.expand_dims(f['lr'][idx] / 255., 0), np.expand_dims(f['hr'][idx] / 255., 0)
-
-#     def __len__(self):
-#         with h5py.File(self.h5_file, 'r') as f:
-#             return len(f['lr'])
-
-
-# class EvalDataset(Dataset):
-#     def __init__(self, h5_file):
-#         super(EvalDataset, self).__init__()
-#         self.h5_file = h5_file
-
-#     def __getitem__(self, idx):
-#         with h5py.File(self.h5_file, 'r') as f:
-#             return np.expand_dims(f['lr'][str(idx)][:, :] / 255., 0), np.expand_dims(f['hr'][str(idx)][:, :] / 255., 0)
-
-#     def __len__(self):
-#         with h5py.File(self.h5_file, 'r') as f:
-#             return len(f['lr'])
         
 class Camera:
-    def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=3.3e-6, unit=0.1e-6):
-        k_r = int(3*f_num*lam/unit)
+    def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=6.6e-6, unit=0.1e-6, kernel='jinc'):
+        k_r = int(3.66*f_num*lam/unit)
         X, Y = np.meshgrid(
             (np.arange(0, k_r*2+1)-k_r)*unit, 
             (np.arange(0, k_r*2+1)-k_r)*unit
         )
-        H = (2*self.jinc(2*np.pi/lam*(X**2+Y**2)**0.5/f_num))**2
+        if kernel == 'jinc':
+            H = (2*self.jinc(np.pi/lam*(X**2+Y**2)**0.5/f_num))**2
+        elif kernel == 'gauss':
+            sigma = 1.22*lam*f_num/3.0
+            H = np.exp(-(X**2 + Y**2)/(2*sigma**2))
         block_size = int(p/unit)//2*2+1
         size = ((k_r*2+1)//block_size//2*2-1)*block_size
         bleed = (k_r*2+1-size)//2
