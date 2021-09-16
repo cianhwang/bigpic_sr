@@ -41,7 +41,8 @@ if __name__ == '__main__':
     #        state_dict[n].copy_(p)
     #    else:
     #        raise KeyError(n)
-    model.load_state_dict(torch.load(args.weights_file))
+    weight = glob.glob(args.weights_file+'/*.pth')[0]
+    model.load_state_dict(torch.load(weight))
 
     model.eval()
     
