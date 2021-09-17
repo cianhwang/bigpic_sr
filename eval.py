@@ -13,6 +13,8 @@ from models import SRCNN, EDSR
 from datasets import Evalset, Camera
 from utils import AverageMeter, calc_psnr, calc_ssim
 
+import glob
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -37,7 +39,8 @@ if __name__ == '__main__':
     else:
         raise("model not recognized. Try EDSR or SRCNN")
     model = nn.DataParallel(model).to(device)
-    model.load_state_dict(torch.load(args.model_path))
+    weight = glob.glob(args.model_path+'/*.pth')[0]
+    model.load_state_dict(torch.load(weight))
     eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon))
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
 
