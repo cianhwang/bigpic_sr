@@ -19,17 +19,17 @@ from losses import PerceptualLoss
 
 def Trainer(args):
     #args.outputs_dir = os.path.join(args.outputs_dir, 'x{}'.format(args.scale))
-    args.outputs_dir = os.path.join(args.outputs_dir, '{}x{}'.format(args.n_photon, args.f_num))
-    print('[*] Saving outputs to {}'.format(args.outputs_dir))
-    if not os.path.exists(args.outputs_dir):
-        os.makedirs(args.outputs_dir)
+    outputs_dir = os.path.join(args.outputs_dir, '{}x{}'.format(args.n_photon, args.f_num))
+    print('[*] Saving outputs to {}'.format(outputs_dir))
+    if not os.path.exists(outputs_dir):
+        os.makedirs(outputs_dir)
         
-    args.logs_dir = os.path.join(args.logs_dir, '{}x{}'.format(args.n_photon, args.f_num))
-    print('[*] Saving tensorboard logs to {}'.format(args.logs_dir))
-    if not os.path.exists(args.logs_dir):
-        os.makedirs(args.logs_dir)
-    writer = SummaryWriter(args.logs_dir)
-    logs_path = os.path.join(args.logs_dir, 'logs.json')
+    logs_dir = os.path.join(args.logs_dir, '{}x{}'.format(args.n_photon, args.f_num))
+    print('[*] Saving tensorboard logs to {}'.format(logs_dir))
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+    writer = SummaryWriter(logs_dir)
+    logs_path = os.path.join(logs_dir, 'logs.json')
     with open(logs_path, 'w') as f:
         json.dump(args.__dict__, f, indent=4)
 
