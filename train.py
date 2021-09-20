@@ -71,7 +71,7 @@ def Trainer(args):
                                   pin_memory=True,
                                   drop_last=True)
     eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon, kernel=args.kernel))
-    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
+    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=args.num_workers, shuffle=False, num_workers=args.num_workers, pin_memory=True)
     
     best_psnr = 0.0
     for epoch in range(args.num_epochs):
@@ -91,8 +91,8 @@ def train(args, epoch, model, train_dataloader, criterion, optimizer, writer, de
         for data in train_dataloader:
             inputs, labels = data
 
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+            inputs = inputs.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
 
             preds = model(inputs)
 
@@ -113,13 +113,13 @@ def validate(args, epoch, model, eval_dataloader, best_psnr, writer, device):
     epoch_psnr = AverageMeter()
     epoch_ssim = AverageMeter()
 
-    with tqdm(total=len(eval_dataloader)) as t:
+    with tqdm(total=len(eval_dataloader)*args.num_workers) as t:
         t.set_description('validate')
         for data in eval_dataloader:
             inputs, labels = data
 
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+            inputs = inputs.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
 
             with torch.no_grad():
                 preds = model(inputs).clamp(0.0, 1.0)
