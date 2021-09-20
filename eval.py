@@ -44,7 +44,7 @@ if __name__ == '__main__':
         n_photon, f_num = int(n_photon), int(f_num)
         print("{}x{}, path: {}".format(n_photon, f_num, weight))
         model.load_state_dict(torch.load(weight))
-        eval_dataset = Evalset(args.eval_file, Camera(f_num = f_num, n_photon=n_photon),patch_size=512)
+        eval_dataset = Evalset(args.eval_file, Camera(f_num = f_num, n_photon=n_photon),patch_size=1024)
         eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
 
         model.eval()
