@@ -52,21 +52,17 @@ class Camera:
         norm_img_sensor = img_sensor/self.n_photon
         return norm_img_sensor   
     
-train_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.RandomCrop(256),
-    transforms.RandomHorizontalFlip()
-])
-val_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.CenterCrop(512)
-])
+
         
 class Trainset(Dataset):
-    def __init__(self, path, camera=Camera(), transform=train_transform):
+    def __init__(self, path, camera=Camera(), patch_size=256):
         self.files = sorted(glob.glob(path + '/*.png')) #[:8000]
         self.camera = camera
-        self.transform = transform
+        self.transform = transforms.Compose([
+                            transforms.ToPILImage(),
+                            transforms.RandomCrop(256),
+                            transforms.RandomHorizontalFlip()
+                        ])
     
     def __getitem__(self, idx):
         gt = cv2.imread(self.files[0], 0)
@@ -80,10 +76,13 @@ class Trainset(Dataset):
         return len(self.files)
     
 class Evalset(Dataset):
-    def __init__(self, path, camera=Camera(), transform=val_transform):
+    def __init__(self, path, camera=Camera(), patch_size=512):
         self.files = sorted(glob.glob(path + '/*.png')) #[8000:]
         self.camera = camera
-        self.transform = transform
+        self.transform = transforms.Compose([
+                            transforms.ToPILImage(),
+                            transforms.CenterCrop(patch_size)
+                        ])
     
     def __getitem__(self, idx):
         gt = cv2.imread(self.files[0], 0)
