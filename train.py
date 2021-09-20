@@ -76,7 +76,10 @@ def Trainer(args):
     best_psnr = 0.0
     for epoch in range(args.num_epochs):
         train(args, epoch, model, train_dataloader, criterion, optimizer, writer, device)
-        best_psnr = validate(args, epoch, model, eval_dataloader, best_psnr, writer, device)
+        val_psnr, val_ssim = validate(args, epoch, model, eval_dataloader, best_psnr, writer, device)
+        if val_psnr > best_psnr:
+            best_psnr = val_psnr
+            torch.save(model.state_dict(), os.path.join(outputs_dir, 'best.pth'))
     
 def train(args, epoch, model, train_dataloader, criterion, optimizer, writer, device):
     model.train()
@@ -129,12 +132,8 @@ def validate(args, epoch, model, eval_dataloader, best_psnr, writer, device):
 
     writer.add_scalar('Stats/eval_psnr', epoch_psnr.avg, epoch+1)
     writer.add_scalar('Stats/eval_ssim', epoch_ssim.avg, epoch+1)
-
-    if epoch_psnr.avg > best_psnr:
-        best_psnr = epoch_psnr.avg
-        torch.save(model.state_dict(), os.path.join(args.outputs_dir, 'best.pth'))
     
-    return best_psnr
+    return epoch_psnr.avg, epoch_ssim.avg
               
 
 if __name__ == '__main__':
