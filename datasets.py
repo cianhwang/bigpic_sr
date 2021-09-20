@@ -65,7 +65,7 @@ class Trainset(Dataset):
                         ])
     
     def __getitem__(self, idx):
-        gt = cv2.imread(self.files[0], 0)
+        gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
         img = self.camera.forward(gt)
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)
@@ -85,7 +85,7 @@ class Evalset(Dataset):
                         ])
     
     def __getitem__(self, idx):
-        gt = cv2.imread(self.files[0], 0)
+        gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
         img = self.camera.forward(gt)
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)
@@ -105,6 +105,8 @@ if __name__ == '__main__':
     trainset = Trainset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_train_HR', camera)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                           shuffle=True, num_workers=2)
+    valset = Evalset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR', camera)
+    valloader = torch.utils.data.DataLoader(dataset=valset, batch_size=1, shuffle=True)
     dataiter = iter(trainloader)
     images, labels = dataiter.next()
     print_stat(images, "images")
