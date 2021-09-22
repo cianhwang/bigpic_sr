@@ -32,6 +32,21 @@ class Kernels:
         X, Y = np.meshgrid((np.arange(0, self.k_r*2+2)-self.k_r)*self.unit, (np.arange(0, self.k_r*2+1)-self.k_r)*self.unit)
         H = 2*jinc(np.pi/self.lam*(X**2+Y**2)**0.5/self.f_num)
         return (H[:,:-1] - H[:,1:])**2
+  
+    def H_d45(self):
+        X, Y = np.meshgrid((np.arange(0, self.k_r*2+2)-self.k_r)*self.unit, (np.arange(0, self.k_r*2+2)-self.k_r)*self.unit)
+        H = 2*jinc(np.pi/self.lam*(X**2+Y**2)**0.5/self.f_num)
+        return (H[:-1,:-1] - H[1:,1:])**2
+    
+    def H_dx(self):
+        X, Y = np.meshgrid((np.arange(0, self.k_r*2+1)-self.k_r)*self.unit, (np.arange(0, self.k_r*2+2)-self.k_r)*self.unit)
+        H = 2*jinc(np.pi/self.lam*(X**2+Y**2)**0.5/self.f_num)
+        return (H[:-1] - H[1:])**2
+
+    def H_dy(self):
+        X, Y = np.meshgrid((np.arange(0, self.k_r*2+2)-self.k_r)*self.unit, (np.arange(0, self.k_r*2+1)-self.k_r)*self.unit)
+        H = 2*jinc(np.pi/self.lam*(X**2+Y**2)**0.5/self.f_num)
+        return (H[:,:-1] - H[:,1:])**2
 
     def H_lap(self):
         X, Y = np.meshgrid((np.arange(0, self.k_r*2+3)-self.k_r)*self.unit, (np.arange(0, self.k_r*2+3)-self.k_r)*self.unit)
