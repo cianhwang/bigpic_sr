@@ -17,7 +17,7 @@ class SRCNN(nn.Module):
         return x
 
 class EDSR(nn.Module):
-    def __init__(self, conv=common.default_conv):
+    def __init__(self, conv=common.default_conv, num_channels=1):
         super(EDSR, self).__init__()
 
         n_resblocks = 16
@@ -27,7 +27,7 @@ class EDSR(nn.Module):
         act = nn.ReLU(True)
 
         # define head module
-        m_head = [conv(1, n_feats, kernel_size)]
+        m_head = [conv(num_channels, n_feats, kernel_size)]
 
         # define body module
         m_body = [

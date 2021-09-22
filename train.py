@@ -38,9 +38,9 @@ def Trainer(args):
 
     torch.manual_seed(args.seed)
     if args.model == 'EDSR':
-        model = EDSR()
+        model = EDSR(num_channels=len(args.kernel.split(',')))
     elif args.model == 'SRCNN':
-        model = SRCNN()
+        model = SRCNN(num_channels=len(args.kernel.split(',')))
     else:
         raise("model not recognized. Try EDSR or SRCNN")
     model = nn.DataParallel(model).to(device)
@@ -63,14 +63,14 @@ def Trainer(args):
     #], lr=args.lr)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    train_dataset = Trainset(args.train_file, Camera(f_num = args.f_num, n_photon=args.n_photon, kernel=args.kernel))
+    train_dataset = Trainset(args)
     train_dataloader = DataLoader(dataset=train_dataset,
                                   batch_size=args.batch_size,
                                   shuffle=True,
                                   num_workers=args.num_workers,
                                   pin_memory=True,
                                   drop_last=True)
-    eval_dataset = Evalset(args.eval_file, Camera(f_num = args.f_num, n_photon=args.n_photon, kernel=args.kernel))
+    eval_dataset = Evalset(args)
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=args.num_workers, shuffle=False, num_workers=args.num_workers, pin_memory=True)
     
     best_psnr = 0.0

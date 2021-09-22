@@ -14,6 +14,7 @@ import torchvision.transforms as transforms
 from skimage.measure import block_reduce
 
 from kernels import Kernels
+import argparse
 
         
 class Camera:
@@ -47,9 +48,11 @@ class Camera:
         return norm_img_sensor   
             
 class Trainset(Dataset):
-    def __init__(self, path, camera=Camera(), patch_size=256):
-        self.files = sorted(glob.glob(path + '/*.png')) #[:8000]
-        self.camera = camera
+    def __init__(self, args, patch_size=256):
+        self.files = sorted(glob.glob(args.train_file + '/*.png')) #[:8000]
+        self.camera = []
+        for kernel in args.kernel.split(","):
+            self.camera.append(Camera(f_num=args.f_num, n_photon=args.n_photon, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.RandomCrop(patch_size+256),
@@ -59,19 +62,24 @@ class Trainset(Dataset):
     def __getitem__(self, idx):
         gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
-        img = self.camera.forward(gt)
+        imgs = []
+        for camera in self.camera:
+            imgs.append(camera.forward(gt))
+        img = np.stack(imgs,axis=0)
         edge = 128 
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
-        img_t =  torch.from_numpy(img).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float()[:, edge:-edge, edge:-edge]
         return img_t, gt_t
 
     def __len__(self):
         return len(self.files)
     
 class Evalset(Dataset):
-    def __init__(self, path, camera=Camera(), patch_size=512):
-        self.files = sorted(glob.glob(path + '/*.png')) #[8000:]
-        self.camera = camera
+    def __init__(self, args, patch_size=512):
+        self.files = sorted(glob.glob(args.eval_file + '/*.png')) #[8000:]
+        self.camera = []
+        for kernel in args.kernel.split(","):
+            self.camera.append(Camera(f_num=args.f_num, n_photon=args.n_photon, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.CenterCrop(patch_size+256)
@@ -80,10 +88,13 @@ class Evalset(Dataset):
     def __getitem__(self, idx):
         gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
-        img = self.camera.forward(gt)
+        imgs = []
+        for camera in self.camera:
+            imgs.append(camera.forward(gt))
+        img = np.stack(imgs,axis=0)
         edge = 128
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
-        img_t =  torch.from_numpy(img).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float()[:, edge:-edge, edge:-edge]
         return img_t, gt_t
 
     def __len__(self):
@@ -95,17 +106,24 @@ def print_stat(narray, narray_name = "array"):
     print(narray_name , "stat: max: {}, min: {}, mean: {}, std: {}".format(arr.max(), arr.min(), arr.mean(), arr.std()))
     
 if __name__ == '__main__':
-    camera = Camera()
-    trainset = Trainset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_train_HR', camera)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train-file', type=str, required=True)
+    parser.add_argument('--eval-file', type=str, required=True)
+    parser.add_argument('--n_photon', type=int, default=1000)
+    parser.add_argument('--f_num', type=int, default=48)
+    parser.add_argument('--kernel', type=str, default='jinc')
+    args = parser.parse_args()
+    trainset = Trainset(args)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                           shuffle=True, num_workers=2)
-    valset = Evalset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR', camera, 1024)
+    valset = Evalset(args, 1024)
     valloader = torch.utils.data.DataLoader(dataset=valset, batch_size=1, shuffle=True)
     dataiter = iter(valloader)
     images, labels = dataiter.next()
     print_stat(images, "images")
     print_stat(labels, "labels")
-    plt.imshow(images[0, 0].numpy(), cmap='gray')
-    plt.show()
+    for i in range(images.size(1)):
+        plt.imshow(images[0, i].numpy(), cmap='gray')
+        plt.show()
     plt.imshow(labels[0, 0].numpy(), cmap='gray')
     plt.show()

@@ -66,6 +66,8 @@ class Kernels:
             return self.H_dx()
         elif name == 'jinc_dy':
             return self.H_dy()
+        elif name == 'jinc_d45':
+            return self.H_d45()
         elif name == 'jinc_lap':
             return self.H_lap()
         else:
