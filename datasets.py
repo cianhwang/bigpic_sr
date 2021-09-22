@@ -30,6 +30,8 @@ class Camera:
         assert H.shape[0]%2 == 1
         self.k_r = H.shape[0]//2
         
+        self.f_num = f_num
+        self.kernel = kernel
         self.n_photon = n_photon
         self.H_t = torch.from_numpy(H).float().unsqueeze(0).unsqueeze(0)
         

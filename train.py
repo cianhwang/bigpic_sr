@@ -19,12 +19,12 @@ from losses import PerceptualLoss
 
 def Trainer(args):
     #args.outputs_dir = os.path.join(args.outputs_dir, 'x{}'.format(args.scale))
-    outputs_dir = os.path.join(args.outputs_dir, '{}x{}'.format(args.n_photon, args.f_num))
+    outputs_dir = os.path.join(args.outputs_dir, '{}x{}x{}'.format(args.n_photon, args.f_num, args.kernel))
     print('[*] Saving outputs to {}'.format(outputs_dir))
     if not os.path.exists(outputs_dir):
         os.makedirs(outputs_dir)
         
-    logs_dir = os.path.join(args.logs_dir, '{}x{}'.format(args.n_photon, args.f_num))
+    logs_dir = os.path.join(args.logs_dir, '{}x{}x{}'.format(args.n_photon, args.f_num, args.kernel))
     print('[*] Saving tensorboard logs to {}'.format(logs_dir))
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
