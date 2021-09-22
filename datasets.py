@@ -13,19 +13,13 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from skimage.measure import block_reduce
 
+from kernels import Kernels
+
         
 class Camera:
     def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=6.6e-6, unit=0.1e-6, kernel='jinc'):
-        k_r = int(3.66*f_num*lam/unit)
-        X, Y = np.meshgrid(
-            (np.arange(0, k_r*2+1)-k_r)*unit, 
-            (np.arange(0, k_r*2+1)-k_r)*unit
-        )
-        if kernel == 'jinc':
-            H = (2*self.jinc(np.pi/lam*(X**2+Y**2)**0.5/f_num))**2
-        elif kernel == 'gauss':
-            sigma = 1.22*lam*f_num/3.0
-            H = np.exp(-(X**2 + Y**2)/(2*sigma**2))
+        k_r = int(5*f_num*lam/unit)
+        H = Kernels(lam=lam, f_num=f_num, unit=unit, k_r = k_r).select_kernel(kernel)
         block_size = int(p/unit)//2*2+1
         size = ((k_r*2+1)//block_size//2*2-1)*block_size
         bleed = (k_r*2+1-size)//2
@@ -51,16 +45,14 @@ class Camera:
         img_sensor = (noisy_img).astype(np.float)
         norm_img_sensor = img_sensor/self.n_photon
         return norm_img_sensor   
-    
-
-        
+            
 class Trainset(Dataset):
     def __init__(self, path, camera=Camera(), patch_size=256):
         self.files = sorted(glob.glob(path + '/*.png')) #[:8000]
         self.camera = camera
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
-                            transforms.RandomCrop(256),
+                            transforms.RandomCrop(patch_size+256),
                             transforms.RandomHorizontalFlip()
                         ])
     
@@ -68,8 +60,9 @@ class Trainset(Dataset):
         gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
         img = self.camera.forward(gt)
-        gt_t = torch.from_numpy(gt).float().unsqueeze(0)
-        img_t =  torch.from_numpy(img).float().unsqueeze(0)
+        edge = 128 
+        gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
         return img_t, gt_t
 
     def __len__(self):
@@ -81,15 +74,16 @@ class Evalset(Dataset):
         self.camera = camera
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
-                            transforms.CenterCrop(patch_size)
+                            transforms.CenterCrop(patch_size+256)
                         ])
     
     def __getitem__(self, idx):
         gt = cv2.imread(self.files[idx], 0)
         gt = np.array(self.transform(gt))/255.0 #/160.0
         img = self.camera.forward(gt)
-        gt_t = torch.from_numpy(gt).float().unsqueeze(0)
-        img_t =  torch.from_numpy(img).float().unsqueeze(0)
+        edge = 128
+        gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
         return img_t, gt_t
 
     def __len__(self):
@@ -105,9 +99,9 @@ if __name__ == '__main__':
     trainset = Trainset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_train_HR', camera)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                           shuffle=True, num_workers=2)
-    valset = Evalset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR', camera)
+    valset = Evalset('/media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR', camera, 1024)
     valloader = torch.utils.data.DataLoader(dataset=valset, batch_size=1, shuffle=True)
-    dataiter = iter(trainloader)
+    dataiter = iter(valloader)
     images, labels = dataiter.next()
     print_stat(images, "images")
     print_stat(labels, "labels")
