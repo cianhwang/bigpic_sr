@@ -71,7 +71,7 @@ def Trainer(args):
                                   pin_memory=True,
                                   drop_last=True)
     eval_dataset = Evalset(args)
-    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=args.num_workers, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+    eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=4, shuffle=False, num_workers=args.num_workers, pin_memory=True)
     
     best_psnr = 0.0
     for epoch in range(args.num_epochs):
@@ -113,7 +113,7 @@ def validate(args, epoch, model, eval_dataloader, best_psnr, writer, device):
     epoch_psnr = AverageMeter()
     epoch_ssim = AverageMeter()
 
-    with tqdm(total=len(eval_dataloader)*args.num_workers) as t:
+    with tqdm(total=len(eval_dataloader)*4) as t:
         t.set_description('validate')
         for data in eval_dataloader:
             inputs, labels = data
