@@ -51,8 +51,11 @@ class Trainset(Dataset):
     def __init__(self, args, patch_size=256):
         self.files = sorted(glob.glob(args.train_file + '/*.png')) #[:8000]
         self.camera = []
+        assert len(args.kernel.split(",")) == 1 or len(args.f_num.split(",")) == 1
+        assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
-            self.camera.append(Camera(f_num=args.f_num, n_photon=args.n_photon, kernel=kernel))
+            for f_num in args.f_num.split(","):
+                self.camera.append(Camera(f_num=int(f_num), n_photon=args.n_photon, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.RandomCrop(patch_size+256),
@@ -78,8 +81,11 @@ class Evalset(Dataset):
     def __init__(self, args, patch_size=512):
         self.files = sorted(glob.glob(args.eval_file + '/*.png')) #[8000:]
         self.camera = []
+        assert len(args.kernel.split(",")) == 1 or len(args.f_num.split(",")) == 1
+        assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
-            self.camera.append(Camera(f_num=args.f_num, n_photon=args.n_photon, kernel=kernel))
+            for f_num in args.f_num.split(","):
+                self.camera.append(Camera(f_num=int(f_num), n_photon=args.n_photon, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.CenterCrop(patch_size+256)
@@ -110,8 +116,8 @@ if __name__ == '__main__':
     parser.add_argument('--train-file', type=str, required=True)
     parser.add_argument('--eval-file', type=str, required=True)
     parser.add_argument('--n_photon', type=int, default=1000)
-    parser.add_argument('--f_num', type=int, default=48)
-    parser.add_argument('--kernel', type=str, default='jinc')
+    parser.add_argument('--f_num', type=str, default="48")
+    parser.add_argument('--kernel', type=str, default="jinc")
     args = parser.parse_args()
     trainset = Trainset(args)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,

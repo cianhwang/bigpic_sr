@@ -38,9 +38,9 @@ def Trainer(args):
 
     torch.manual_seed(args.seed)
     if args.model == 'EDSR':
-        model = EDSR(num_channels=len(args.kernel.split(',')))
+        model = EDSR(num_channels=args.num_channels)
     elif args.model == 'SRCNN':
-        model = SRCNN(num_channels=len(args.kernel.split(',')))
+        model = SRCNN(num_channels=args.num_channels)
     else:
         raise("model not recognized. Try EDSR or SRCNN")
     model = nn.DataParallel(model).to(device)
@@ -144,6 +144,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs_dir', type=str, default='runs')
     #parser.add_argument('--scale', type=int, default=3)
     parser.add_argument('--model', type=str, default='EDSR')
+    parser.add_argument('--num-channels', type=int, default=1)
     parser.add_argument('--criterion', type=str, default='mse')
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--batch-size', type=int, default=16)
@@ -157,10 +158,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
               
     n_photos = args.n_photon.split(',')
-    f_nums = args.f_num.split(',')
               
     for n_photo in n_photos:
-        for f_num in f_nums:
-            args.n_photon = int(n_photo)
-            args.f_num = int(f_num)
-            Trainer(args)
+        args.n_photon = int(n_photo)
+        Trainer(args)
