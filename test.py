@@ -56,13 +56,13 @@ if __name__ == '__main__':
     with tqdm(total=len(paths)) as t:
         for path in paths:
             index = path[-8:-4]
-            image = cv2.imread(path, 0)[:1024, :1024]
+            image = cv2.imread(path, 0)[:1280, :1280]
             cv2.imwrite('{}/{}_hr.png'.format(args.output_path, index), 
-                        image)
+                        image[128:-128, 128:-128])
             image = np.array(image).astype(np.float32)/255.
             ys = []
             for camera in cameras:
-                y = camera.forward(image)
+                y = camera.forward(image)[128:-128, 128:-128]
                 ys.append(y)
                 cv2.imwrite('{}/{}_degrad_{}x{}x{}.png'.format(
                     args.output_path, 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
                 np.clip(y*255.0, 0.0, 255.0).astype(np.uint8))
             y = np.stack(ys,axis=0)
             y_t = torch.from_numpy(y).float().to(device).unsqueeze(0)
-            image_t = torch.from_numpy(image).float().to(device).unsqueeze(0).unsqueeze(0)
+            image_t = torch.from_numpy(image[128:-128, 128:-128]).float().to(device).unsqueeze(0).unsqueeze(0)
 
             with torch.no_grad():
                 pred = model(y_t).clamp(0.0, 1.0)
