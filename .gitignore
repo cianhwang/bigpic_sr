@@ -11,3 +11,8 @@ data/
 *.ipynb
 *~
 *.zip
+*.raw
+*.png
+*.npy
+*.jpg
+*.jpeg
