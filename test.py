@@ -66,17 +66,20 @@ if __name__ == '__main__':
             for camera in cameras:
                 y = camera.forward(image)[128:-128, 128:-128]
                 ys.append(y)
-                cv2.imwrite('{}/{}_degrad_{}x{}x{}.png'.format(
-                    args.output_path, 
-                    index, 
-                    camera.f_num, 
-                    camera.n_photon, 
-                    camera.kernel
-                ), 
-                np.clip(y*255.0, 0.0, 255.0).astype(np.uint8))
             y = np.stack(ys,axis=0)
             y_t = torch.from_numpy(y).float().to(device).unsqueeze(0)
             image_t = torch.from_numpy(image[128:-128, 128:-128]).float().to(device).unsqueeze(0).unsqueeze(0)
+            
+            for i in range(y_t.size(1)):
+                yy = y_t[:,i:i+1,:,:]
+                psnr = calc_psnr(image_t, yy)
+                ssim = calc_ssim(image_t, yy)
+                y = yy.cpu().numpy().squeeze(0).squeeze(0)
+                cv2.imwrite('{}/{}_degrad_{}x{}x{}_{:.2f}_{:.4f}.png'.format(
+                    args.output_path, index,
+                    cameras[i].f_num, cameras[i].n_photon, cameras[i].kernel,
+                    psnr,ssim), 
+                np.clip(y*255.0, 0.0, 255.0).astype(np.uint8))
 
             with torch.no_grad():
                 pred = model(y_t).clamp(0.0, 1.0)
