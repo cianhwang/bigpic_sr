@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--lam', type=float, default=0.633e-6)
     parser.add_argument('--n_photon', type=int, default=100)
     parser.add_argument('--f_num', type=str, default="32,48")
+    parser.add_argument('--p', type=float, default=6.6e-6)
     parser.add_argument('--kernel', type=str, default="jinc")
     
     args = parser.parse_args()
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     cameras = []
     for kernel in args.kernel.split(","):
         for f_num in args.f_num.split(","):
-            cameras.append(Camera(lam=args.lam, f_num=int(f_num), n_photon=args.n_photon, kernel=kernel))
+            cameras.append(Camera(lam=args.lam, f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
 
     with tqdm(total=len(paths)) as t:
         for path in paths:

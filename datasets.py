@@ -57,7 +57,7 @@ class Trainset(Dataset):
         assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
             for f_num in args.f_num.split(","):
-                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, kernel=kernel))
+                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.RandomCrop(patch_size+256),
@@ -87,7 +87,7 @@ class Evalset(Dataset):
         assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
             for f_num in args.f_num.split(","):
-                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, kernel=kernel))
+                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.CenterCrop(patch_size+256)

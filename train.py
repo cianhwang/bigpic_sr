@@ -155,6 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('--lam', type=float, default=0.633e-6)
     parser.add_argument('--n_photon', type=str, default="100,1000,10000,100000")
     parser.add_argument('--f_num', type=str, default="16,20,24")
+    parser.add_argument('--p', type=float, default=6.6e-6)
     parser.add_argument('--kernel', type=str, default='jinc')
     args = parser.parse_args()
               
