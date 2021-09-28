@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=123) 
     parser.add_argument('--num-channels', type=int, default=1)
 
+    parser.add_argument('--lam', type=float, default=0.633e-6)
     parser.add_argument('--n_photon', type=int, default=100)
     parser.add_argument('--f_num', type=str, default="32,48")
     parser.add_argument('--kernel', type=str, default="jinc")
