@@ -18,7 +18,7 @@ import argparse
 
         
 class Camera:
-    def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=6.6e-6, unit=0.1e-6, kernel='jinc'):
+    def __init__(self, lam=0.633e-6, f_num=16, n_photon=1e2, p=6.6e-6, unit=0.1e-6, kernel='jinc',scale=1):
         k_r = int(5*f_num*lam/unit)
         H = Kernels(lam=lam, f_num=f_num, unit=unit, k_r = k_r).select_kernel(kernel)
         block_size = int(p/unit)//2*2+1
@@ -30,6 +30,7 @@ class Camera:
         assert H.shape[0]%2 == 1
         self.k_r = H.shape[0]//2
         
+        self.scale = scale
         self.f_num = f_num
         self.kernel = kernel
         self.n_photon = n_photon
@@ -47,17 +48,19 @@ class Camera:
         noisy_img = np.random.poisson(blurry_img * self.n_photon)
         img_sensor = (noisy_img).astype(np.float)
         norm_img_sensor = img_sensor/self.n_photon
-        return norm_img_sensor   
+        img_downsample = block_reduce(norm_img_sensor, block_size=(self.scale, self.scale), func=np.mean)
+        return img_downsample   
             
 class Trainset(Dataset):
     def __init__(self, args, patch_size=256):
         self.files = sorted(glob.glob(args.train_file + '/*.png')) #[:8000]
         self.camera = []
+        self.scale = args.scale
         assert len(args.kernel.split(",")) == 1 or len(args.f_num.split(",")) == 1
         assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
             for f_num in args.f_num.split(","):
-                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
+                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel, scale=args.scale))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.RandomCrop(patch_size+256),
@@ -73,7 +76,7 @@ class Trainset(Dataset):
         img = np.stack(imgs,axis=0)
         edge = 128 
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
-        img_t =  torch.from_numpy(img).float()[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float()[:, edge//self.scale:-edge//self.scale, edge//self.scale:-edge//self.scale]
         return img_t, gt_t
 
     def __len__(self):
@@ -83,11 +86,12 @@ class Evalset(Dataset):
     def __init__(self, args, patch_size=512):
         self.files = sorted(glob.glob(args.eval_file + '/*.png')) #[8000:]
         self.camera = []
+        self.scale = args.scale
         assert len(args.kernel.split(",")) == 1 or len(args.f_num.split(",")) == 1
         assert len(args.kernel.split(","))*len(args.f_num.split(",")) == args.num_channels
         for kernel in args.kernel.split(","):
             for f_num in args.f_num.split(","):
-                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
+                self.camera.append(Camera(lam=args.lam,f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel, scale=args.scale))
         self.transform = transforms.Compose([
                             transforms.ToPILImage(),
                             transforms.CenterCrop(patch_size+256)
@@ -102,7 +106,7 @@ class Evalset(Dataset):
         img = np.stack(imgs,axis=0)
         edge = 128
         gt_t = torch.from_numpy(gt).float().unsqueeze(0)[:, edge:-edge, edge:-edge]
-        img_t =  torch.from_numpy(img).float()[:, edge:-edge, edge:-edge]
+        img_t =  torch.from_numpy(img).float()[:, edge//self.scale:-edge//self.scale, edge//self.scale:-edge//self.scale]
         return img_t, gt_t
 
     def __len__(self):
@@ -120,13 +124,18 @@ if __name__ == '__main__':
     parser.add_argument('--n_photon', type=int, default=1000)
     parser.add_argument('--f_num', type=str, default="48")
     parser.add_argument('--kernel', type=str, default="jinc")
+    parser.add_argument('--scale', type=int, default=1)
+    parser.add_argument('--num_channels', type=int, default=1)
+    parser.add_argument('--lam', type=float, default=0.633e-6)
+    parser.add_argument('--p', type=float, default=6.6e-6)
+    
     args = parser.parse_args()
     trainset = Trainset(args)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                           shuffle=True, num_workers=2)
     valset = Evalset(args, 1024)
     valloader = torch.utils.data.DataLoader(dataset=valset, batch_size=1, shuffle=True)
-    dataiter = iter(valloader)
+    dataiter = iter(trainloader)
     images, labels = dataiter.next()
     print_stat(images, "images")
     print_stat(labels, "labels")

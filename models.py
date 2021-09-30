@@ -17,13 +17,12 @@ class SRCNN(nn.Module):
         return x
 
 class EDSR(nn.Module):
-    def __init__(self, conv=common.default_conv, num_channels=1):
+    def __init__(self, conv=common.default_conv, num_channels=1, scale = 1):
         super(EDSR, self).__init__()
 
         n_resblocks = 16
         n_feats = 64
         kernel_size = 3 
-        scale = 1
         act = nn.ReLU(True)
 
         # define head module
@@ -38,10 +37,15 @@ class EDSR(nn.Module):
         m_body.append(conv(n_feats, n_feats, kernel_size))
 
         # define tail module
-        m_tail = [
-            #common.Upsampler(conv, scale, n_feats, act=False),
-            conv(n_feats, 1, kernel_size)
-        ]
+        if scale == 1:
+            m_tail = [
+                conv(n_feats, 1, kernel_size)
+            ]
+        else:
+            m_tail = [
+                common.Upsampler(conv, scale, n_feats, act=False),
+                conv(n_feats, 1, kernel_size)
+            ]
 
         self.head = nn.Sequential(*m_head)
         self.body = nn.Sequential(*m_body)
@@ -57,9 +61,9 @@ class EDSR(nn.Module):
         return x 
 
 if __name__=='__main__':
-    inputs = torch.rand(4, 1, 256, 256).cuda()
+    inputs = torch.rand(4, 1, 64, 64).cuda()
     targets = torch.rand(4, 1, 256, 256).cuda()
-    model = EDSR().cuda()
+    model = EDSR(num_channels=1, scale = 4).cuda()
     preds = model(inputs)
     print(preds.size())
     loss = (targets - preds).sum()

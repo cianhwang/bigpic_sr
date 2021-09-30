@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--f_num', type=str, default="32,48")
     parser.add_argument('--p', type=float, default=6.6e-6)
     parser.add_argument('--kernel', type=str, default="jinc")
+    parser.add_argument('--scale', type=int, default=1)
     
     args = parser.parse_args()
 
@@ -33,8 +34,9 @@ if __name__ == '__main__':
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     if args.model == 'EDSR':
-        model = EDSR(num_channels=args.num_channels)
+        model = EDSR(num_channels=args.num_channels,scale=args.scale)
     elif args.model == 'SRCNN':
+        assert args.scale==1
         model = SRCNN(num_channels=args.num_channels)
     else:
         raise("model not recognized. Try EDSR or SRCNN")
@@ -53,7 +55,7 @@ if __name__ == '__main__':
     cameras = []
     for kernel in args.kernel.split(","):
         for f_num in args.f_num.split(","):
-            cameras.append(Camera(lam=args.lam, f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel))
+            cameras.append(Camera(lam=args.lam, f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel,scale=args.scale))
 
     with tqdm(total=len(paths)) as t:
         for path in paths:
@@ -64,7 +66,7 @@ if __name__ == '__main__':
             image = np.array(image).astype(np.float32)/255.
             ys = []
             for camera in cameras:
-                y = camera.forward(image)[128:-128, 128:-128]
+                y = camera.forward(image)[128//args.scale:-128//args.scale, 128//args.scale:-128//args.scale]
                 ys.append(y)
             y = np.stack(ys,axis=0)
             y_t = torch.from_numpy(y).float().to(device).unsqueeze(0)
@@ -72,8 +74,8 @@ if __name__ == '__main__':
             
             for i in range(y_t.size(1)):
                 yy = y_t[:,i:i+1,:,:]
-                psnr = calc_psnr(image_t, yy)
-                ssim = calc_ssim(image_t, yy)
+                psnr = 0#calc_psnr(image_t, yy)
+                ssim = 0#calc_ssim(image_t, yy)
                 y = yy.cpu().numpy().squeeze(0).squeeze(0)
                 cv2.imwrite('{}/{}_degrad_{}x{}x{}_{:.2f}_{:.4f}.png'.format(
                     args.output_path, index,

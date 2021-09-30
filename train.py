@@ -38,8 +38,9 @@ def Trainer(args):
 
     torch.manual_seed(args.seed)
     if args.model == 'EDSR':
-        model = EDSR(num_channels=args.num_channels)
+        model = EDSR(num_channels=args.num_channels,scale=args.scale)
     elif args.model == 'SRCNN':
+        assert args.scale == 1
         model = SRCNN(num_channels=args.num_channels)
     else:
         raise("model not recognized. Try EDSR or SRCNN")
@@ -157,6 +158,8 @@ if __name__ == '__main__':
     parser.add_argument('--f_num', type=str, default="16,20,24")
     parser.add_argument('--p', type=float, default=6.6e-6)
     parser.add_argument('--kernel', type=str, default='jinc')
+    parser.add_argument('--scale', type=int, default=1)
+    
     args = parser.parse_args()
               
     n_photos = args.n_photon.split(',')
