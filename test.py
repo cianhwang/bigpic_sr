@@ -74,8 +74,8 @@ if __name__ == '__main__':
             
             for i in range(y_t.size(1)):
                 yy = y_t[:,i:i+1,:,:]
-                psnr = 0#calc_psnr(image_t, yy)
-                ssim = 0#calc_ssim(image_t, yy)
+                psnr = calc_psnr(image_t, yy)
+                ssim = calc_ssim(image_t, yy)
                 y = yy.cpu().numpy().squeeze(0).squeeze(0)
                 cv2.imwrite('{}/{}_degrad_{}x{}x{}_{:.2f}_{:.4f}.png'.format(
                     args.output_path, index,
