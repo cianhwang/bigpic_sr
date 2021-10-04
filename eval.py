@@ -12,6 +12,8 @@ from tqdm import tqdm
 from models import SRCNN, EDSR
 from datasets import Evalset, Camera
 from utils import AverageMeter, calc_psnr, calc_ssim
+import torchvision.transforms.functional as F
+from torchvision.transforms import InterpolationMode
 
 import glob
 
@@ -65,7 +67,7 @@ if __name__ == '__main__':
                 with torch.no_grad():
                     preds = model(inputs).clamp(0.0, 1.0)
             else:
-                preds = inputs
+                preds = F.resize(inputs, (1024, 1024), InterpolationMode.BICUBIC) 
                 
             epoch_psnr.update(calc_psnr(preds, labels), len(inputs))
             epoch_ssim.update(calc_ssim(labels, preds), len(inputs))

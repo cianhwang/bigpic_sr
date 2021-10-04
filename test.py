@@ -12,6 +12,9 @@ from datasets import Camera
 import glob
 import os
 from tqdm import tqdm
+from utils import AverageMeter, calc_psnr, calc_ssim
+import torchvision.transforms.functional as F
+from torchvision.transforms import InterpolationMode
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -74,8 +77,8 @@ if __name__ == '__main__':
             
             for i in range(y_t.size(1)):
                 yy = y_t[:,i:i+1,:,:]
-                psnr = calc_psnr(image_t, yy)
-                ssim = calc_ssim(image_t, yy)
+                psnr = calc_psnr(image_t, F.resize(yy, (1024, 1024), InterpolationMode.BICUBIC) )
+                ssim = calc_ssim(image_t, F.resize(yy, (1024, 1024), InterpolationMode.BICUBIC) )
                 y = yy.cpu().numpy().squeeze(0).squeeze(0)
                 cv2.imwrite('{}/{}_degrad_{}x{}x{}_{:.2f}_{:.4f}.png'.format(
                     args.output_path, index,
