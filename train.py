@@ -38,7 +38,7 @@ def Trainer(args):
 
     torch.manual_seed(args.seed)
     if args.model == 'EDSR':
-        model = EDSR(num_channels=args.num_channels,scale=args.scale)
+        model = EDSR(num_channels=args.num_channels,scale=args.scale,n_post_blocks=args.n_post_blocks)
     elif args.model == 'SRCNN':
         assert args.scale == 1
         model = SRCNN(num_channels=args.num_channels)
@@ -146,6 +146,7 @@ if __name__ == '__main__':
     #parser.add_argument('--scale', type=int, default=3)
     parser.add_argument('--model', type=str, default='EDSR')
     parser.add_argument('--num-channels', type=int, default=1)
+    parser.add_argument('--n-post-blocks', type=int, default=0)
     parser.add_argument('--criterion', type=str, default='mse')
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--batch-size', type=int, default=16)

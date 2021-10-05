@@ -23,7 +23,8 @@ if __name__ == '__main__':
     parser.add_argument('--output-path', type=str, default='test')
     parser.add_argument('--model', type=str, default='EDSR')
     parser.add_argument('--num-channels', type=int, default=1)
-
+    parser.add_argument('--n-post-blocks', type=int, default=0)
+    
     parser.add_argument('--lam', type=float, default=0.633e-6)
     parser.add_argument('--n_photon', type=int, default=100)
     parser.add_argument('--f_num', type=str, default="32,48")
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     if args.model == 'EDSR':
-        model = EDSR(num_channels=args.num_channels,scale=args.scale)
+        model = EDSR(num_channels=args.num_channels,scale=args.scale,n_post_blocks=args.n_post_blocks)
     elif args.model == 'SRCNN':
         assert args.scale==1
         model = SRCNN(num_channels=args.num_channels)

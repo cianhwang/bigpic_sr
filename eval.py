@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', type=str, required=True)
     parser.add_argument('--seed', type=int, default=123) 
     parser.add_argument('--num-channels', type=int, default=1)
+    parser.add_argument('--n-post-blocks', type=int, default=0)
 
     parser.add_argument('--lam', type=float, default=0.633e-6)
     parser.add_argument('--n_photon', type=int, default=100)
@@ -41,7 +42,7 @@ if __name__ == '__main__':
 
     torch.manual_seed(args.seed)
     if args.model == 'EDSR':
-        model = EDSR(num_channels=args.num_channels,scale=args.scale)
+        model = EDSR(num_channels=args.num_channels,scale=args.scale,n_post_blocks=args.n_post_blocks)
     elif args.model == 'SRCNN':
         assert args.scale == 1
         model = SRCNN(num_channels=args.num_channels)

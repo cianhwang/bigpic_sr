@@ -17,7 +17,7 @@ class SRCNN(nn.Module):
         return x
 
 class EDSR(nn.Module):
-    def __init__(self, conv=common.default_conv, num_channels=1, scale = 1):
+    def __init__(self, conv=common.default_conv, num_channels=1, scale=1, n_post_blocks=0):
         super(EDSR, self).__init__()
 
         n_resblocks = 16
@@ -43,7 +43,12 @@ class EDSR(nn.Module):
             ]
         else:
             m_tail = [
-                common.Upsampler(conv, scale, n_feats, act=False),
+                common.Upsampler(conv, scale, n_feats, act=False)
+            ] + [
+                common.ResBlock(
+                conv, n_feats, kernel_size, act=act, res_scale=1
+            ) for _ in range(n_post_blocks)
+            ] + [
                 conv(n_feats, 1, kernel_size)
             ]
 
