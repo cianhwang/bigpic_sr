@@ -59,7 +59,7 @@ if __name__ == '__main__':
     cameras = []
     for kernel in args.kernel.split(","):
         for f_num in args.f_num.split(","):
-            cameras.append(Camera(lam=args.lam, f_num=int(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel,scale=args.scale))
+            cameras.append(Camera(lam=args.lam, f_num=float(f_num), n_photon=args.n_photon, p=args.p, kernel=kernel,scale=args.scale))
 
     with tqdm(total=len(paths)) as t:
         for path in paths:
