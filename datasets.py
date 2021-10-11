@@ -45,11 +45,11 @@ class Camera:
         img_t = torch.from_numpy(img).float()
         img_t = F.pad(img_t, (self.k_r, self.k_r, self.k_r, self.k_r)).unsqueeze(0).unsqueeze(0)
         blurry_img = F.conv2d(img_t, self.H_t).squeeze().numpy()
-        noisy_img = np.random.poisson(blurry_img * self.n_photon)
+        img_downsample = block_reduce(blurry_img, block_size=(self.scale, self.scale), func=np.sum)
+        noisy_img = np.random.poisson(img_downsample * self.n_photon)
         img_sensor = (noisy_img).astype(np.float)
-        norm_img_sensor = img_sensor/self.n_photon
-        img_downsample = block_reduce(norm_img_sensor, block_size=(self.scale, self.scale), func=np.mean)
-        return img_downsample   
+        norm_img_sensor = img_sensor/(self.scale**2*self.n_photon)
+        return norm_img_sensor   
             
 class Trainset(Dataset):
     def __init__(self, args, patch_size=256):
