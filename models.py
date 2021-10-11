@@ -68,7 +68,8 @@ class EDSR(nn.Module):
 if __name__=='__main__':
     inputs = torch.rand(4, 1, 64, 64).cuda()
     targets = torch.rand(4, 1, 256, 256).cuda()
-    model = EDSR(num_channels=1, scale = 4).cuda()
+    model = EDSR(num_channels=1, scale=4, n_post_blocks=3).cuda()
+    print(model)
     preds = model(inputs)
     print(preds.size())
     loss = (targets - preds).sum()
