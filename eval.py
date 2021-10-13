@@ -10,7 +10,7 @@ from torch.utils.data.dataloader import DataLoader
 from tqdm import tqdm
 
 from models import SRCNN, EDSR
-from datasets import Evalset, Camera
+from datasets import Train_or_Evalset, Camera
 from utils import AverageMeter, calc_psnr, calc_ssim
 import torchvision.transforms.functional as F
 from torchvision.transforms import InterpolationMode
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     model = nn.DataParallel(model).to(device)
     weight = glob.glob(args.model_path + '/*.pth')[0]
     model.load_state_dict(torch.load(weight))
-    eval_dataset = Evalset(args,patch_size=1024)
+    eval_dataset = Train_or_Evalset(args,patch_size=1024, is_train=False)
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=1)
 
     model.eval()

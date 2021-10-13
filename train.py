@@ -10,7 +10,7 @@ from torch.utils.data.dataloader import DataLoader
 from tqdm import tqdm
 
 from models import SRCNN, EDSR
-from datasets import Trainset, Evalset, Camera
+from datasets import Train_or_Evalset, Camera
 from utils import AverageMeter, calc_psnr, calc_ssim
 from tensorboardX import SummaryWriter
 import json
@@ -64,14 +64,14 @@ def Trainer(args):
     #], lr=args.lr)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    train_dataset = Trainset(args)
+    train_dataset = Train_or_Evalset(args, patch_size=256, is_train=True)
     train_dataloader = DataLoader(dataset=train_dataset,
                                   batch_size=args.batch_size,
                                   shuffle=True,
                                   num_workers=args.num_workers,
                                   pin_memory=True,
                                   drop_last=True)
-    eval_dataset = Evalset(args)
+    eval_dataset = Train_or_Evalset(args, patch_size=512, is_train=False)
     eval_dataloader = DataLoader(dataset=eval_dataset, batch_size=4, shuffle=False, num_workers=args.num_workers, pin_memory=True)
     
     best_psnr = 0.0
