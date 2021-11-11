@@ -8,7 +8,7 @@ def calc_psnr(img1, img2):
 def calc_ssim(img1, img2):
     SSIM = 0.0
     for i in range(img1.size(0)):
-        a, b = img1.cpu().numpy()[0, 0], img2.cpu().numpy()[0, 0]
+        a, b = img1.cpu().numpy()[i, 0], img2.cpu().numpy()[i, 0]
         SSIM += ssim(a, b, data_range=b.max()-b.min())
     return SSIM/img1.size(0)
 
