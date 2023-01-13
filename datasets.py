@@ -16,7 +16,7 @@ from skimage.measure import block_reduce
 from kernels import Kernels
 import argparse
 
-from dual_align import align_image, load_exr
+#from dual_align import align_image, load_exr
 
         
 class Camera:
