@@ -3,7 +3,7 @@
 #### Qian Huang
 #### 1/12/2023
 
-**Demo notebook**: demo.ipynb
+**Demo notebook**: [demo.ipynb](demo.ipynb)
 
 **Motivation**: Fisher information suggests we can go beyond diffraction limit given prior knowledge, which can be effectively learned by neural algorithm on large datasets.
 
