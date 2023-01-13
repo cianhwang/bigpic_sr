@@ -1,15 +1,16 @@
-Code borrows from DeblurGANv2, EDSR, and SRCNN.
+# Physical Super Resolution (SR) Against Diffraction Blur
 
-```bash
+#### Qian Huang
+#### 1/12/2023
 
-python train.py --train-file /media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_train_HR --eval-file /media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR --outputs-dir outputs/edsr_test --logs_dir runs/edsr_test --model EDSR --criterion l1+perceptual --lr 2e-5 --batch-size 2 --num-epochs 3 --num-workers 4 --seed 123 --n_photon 1000 --f_num 16,20 --kernel jinc --num-channels 2
-python eval.py --eval-file /media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR --model EDSR --model_path outputs/edsr_test/1000x16,20xjinc --seed 123 --n_photon 1000 --f_num 16,20 --kernel jinc --num-channels 2 --is_pred
-python test.py --weights-file outputs/edsr_test/1000x16,20xjinc --image-file /media/qian/7f6908d4-b97f-4a1e-ba90-d502c5308801/DIV2K_valid_HR --output-path test/edsr_test --model EDSR --f_num 16,20 --n_photon 1000 --kernel jinc --num-channels 2
+**Demo notebook**: demo.ipynb
 
-```
------------------
-#### DeblurGANv2
+**Motivation**: Fisher information suggests we can go beyond diffraction limit given prior knowledge, which can be effectively learned by neural algorithm on large datasets.
 
-#### EDSR
+**Goal**: develop an neural algorithm to restore images impacted by diffraction blur.
 
-#### SRCNN
+**Method**:
+* Develop a SR neural algorithm that can use SRCNN or EDSR, two classic SR networks, as its backbone for physical SR.
+* Simulate the camera and develop an associate forward model to generate degraded images from high quality image datasets like DIV2K
+* Use generated samples to train the network.
+* Save the network weights that perform best on validation set and use them for future inference.
