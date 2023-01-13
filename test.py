@@ -65,6 +65,9 @@ if __name__ == '__main__':
         for path in paths:
             index = path[-8:-4]
             image = cv2.imread(path, 0)[:1280, :1280]
+            if image.shape[0] < 1280 or image.shape[1] < 1280:
+                print(f"small image: {index} skipped")
+                continue
             cv2.imwrite('{}/{}_hr.png'.format(args.output_path, index), 
                         image[128:-128, 128:-128])
             image = np.array(image).astype(np.float32)/255.
